@@ -85,6 +85,25 @@ def test_signup_rejects_duplicate_participant(client):
     assert activities[activity_name]["participants"].count(email) == 1
 
 
+def test_signup_rejects_when_activity_is_full(client):
+    # Arrange
+    activity_name = "Chess Club"
+    activity = activities[activity_name]
+    # Fill up the activity
+    for i in range(activity["max_participants"] - len(activity["participants"])):
+        activity["participants"].append(f"filler{i}@mergington.edu")
+
+    # Act
+    response = client.post(
+        f"/activities/{activity_name}/signup",
+        params={"email": "latecomer@mergington.edu"},
+    )
+
+    # Assert
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Activity is full"
+
+
 def test_unregister_removes_existing_participant(client):
     # Arrange
     activity_name = "Soccer Club"
